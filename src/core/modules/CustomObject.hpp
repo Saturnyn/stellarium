@@ -31,6 +31,7 @@
 
 class StelPainter;
 
+
 class CustomObject : public StelObject
 {
 	friend class CustomObjectMgr;
@@ -76,6 +77,10 @@ public:
 
 	void update(double deltaTime);
 
+	void setPrevious(QSharedPointer<CustomObject> obj);
+	void setNext(QSharedPointer<CustomObject> obj);
+	Vec3d getXYZ();
+
 private:
 	bool initialized;
 
@@ -92,6 +97,10 @@ private:
 	bool isMarker;	
 
 	LinearFader labelsFader;
+
+	QSharedPointer<CustomObject> previous;
+	QSharedPointer<CustomObject> next;
+
 };
 
 #endif // CUSTOMOBJECT_HPP

@@ -27,8 +27,12 @@
 #include "StelTranslator.hpp"
 #include "CustomObjectMgr.hpp"
 
+#include <QApplication>
 #include <QSettings>
 #include <QKeyEvent>
+#include <QClipboard>
+#include <QString>
+#include <QStringList>
 
 CustomObjectMgr::CustomObjectMgr()
 	: countMarkers(0)
@@ -62,7 +66,7 @@ void CustomObjectMgr::handleMouseClicks(class QMouseEvent* e)
 	if (e->modifiers().testFlag(Qt::ShiftModifier) && e->button()==Qt::LeftButton && e->type()==QEvent::MouseButtonPress)
 	{
 		// Add custom marker
-		addCustomObject(QString("%1 %2").arg(N_("Marker")).arg(countMarkers + 1), mousePosition, true);
+		addCustomObject(QString("%1").arg(countMarkers + 1), mousePosition, true);
 
 		e->setAccepted(true);
 		return;
@@ -122,7 +126,7 @@ void CustomObjectMgr::init()
 
 	customObjects.clear();
 
-	setMarkersColor(StelUtils::strToVec3f(conf->value("color/custom_marker_color", "0.1,1.0,0.1").toString()));
+	setMarkersColor(StelUtils::strToVec3f(conf->value("color/custom_marker_color", "1.0,0.1,0.1").toString()));
 	setMarkersSize(conf->value("gui/custom_marker_size", 5.f).toFloat());
 	// Limit the click radius to 15px in any direction
 	setActiveRadiusLimit(conf->value("gui/custom_marker_radius_limit", 15).toInt());
@@ -158,6 +162,7 @@ void CustomObjectMgr::addCustomObject(QString designation, Vec3d coordinates, bo
 		if (isVisible)
 			countMarkers++;
 	}
+	updateLinks();
 }
 
 void CustomObjectMgr::addCustomObject(QString designation, const QString &ra, const QString &dec, bool isVisible)
@@ -200,12 +205,14 @@ void CustomObjectMgr::removeCustomObjects()
 	customObjects.clear();
 	//This marker count can be set to 0 because there will be no markers left and a duplicate will be impossible
 	countMarkers = 0;
+	updateLinks();
 }
 
 void CustomObjectMgr::removeCustomObject(CustomObjectP obj)
 {
 	setSelected("");
 	customObjects.removeOne(obj);
+	updateLinks();
 }
 
 void CustomObjectMgr::removeCustomObject(QString englishName)
@@ -217,6 +224,41 @@ void CustomObjectMgr::removeCustomObject(QString englishName)
 		if(cObj && cObj->getEnglishName()==englishName && cObj->initialized)
 			customObjects.removeOne(cObj);
 	}
+}
+
+void CustomObjectMgr::updateLinks()
+{
+    int size = customObjects.size();
+    if(size > 0){
+        if(size == 1){
+            customObjects[0]->setPrevious(0);
+            customObjects[0]->setNext(0);
+        }else{
+            for (int i = 0; i < size; ++i) {
+                if(i==0){
+                    customObjects[i]->setPrevious(customObjects[size-1]);
+                }else{
+                    customObjects[i]->setPrevious(customObjects[i-1]);
+                }
+                if(i==size-1){
+                    customObjects[i]->setNext(customObjects[0]);
+                }else{
+                    customObjects[i]->setNext(customObjects[i+1]);
+                }
+            }
+        }
+        QClipboard *clipboard = QApplication::clipboard();
+        QStringList *list = new QStringList();
+        StelCore *core = StelApp::getInstance().getCore();
+        for (int i = 0; i < size; ++i) {
+            double dec_j2000, ra_j2000;
+            StelUtils::rectToSphe(&ra_j2000,&dec_j2000, customObjects[i]->getJ2000EquatorialPos(core));
+            QString ra  = StelUtils::radToDecDegStr(ra_j2000,5,false,true);
+            QString de = StelUtils::radToDecDegStr(dec_j2000);
+            list->append(QString("%1,%2;").arg(ra).arg(de));
+        }
+        clipboard->setText(list->join(""), QClipboard::Clipboard);
+    }
 }
 
 void CustomObjectMgr::draw(StelCore* core)

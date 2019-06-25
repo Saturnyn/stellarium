@@ -130,6 +130,8 @@ public slots:
 	//! Remove just one custom object by English name
 	void removeCustomObject(QString englishName);
 
+    void updateLinks();
+
 	//! Set the color used to draw custom object markers.
 	//! @param c The color of the custom object markers (R,G,B)
 	//! @code

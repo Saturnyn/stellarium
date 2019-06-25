@@ -46,3 +46,4 @@ guide/html/*
 *.lnk
 # Ignore intellij project files
 *.iml
+.idea

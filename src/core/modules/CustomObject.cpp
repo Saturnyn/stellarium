@@ -136,9 +136,35 @@ void CustomObject::draw(StelCore* core, StelPainter *painter)
 
 		painter->drawSprite2dMode(pos[0], pos[1], markerSize);
 
+
+		if(next){
+		    Vec3d pos2;
+		    painter->getProjector()->projectCheck(next->getXYZ(), pos2);
+		    painter->drawLine2d(pos[0], pos[1], pos2[0], pos2[1]);
+        }
+
 		if (labelsFader.getInterstate()<=0.f)
 		{
 			painter->drawText(pos[0], pos[1], getNameI18n(), 0, shift, shift, false);
 		}
 	}
+}
+
+void CustomObject::setPrevious(QSharedPointer<CustomObject> obj)
+{
+	if (obj && obj->getType() == "CustomObject")
+		previous = obj;
+	else
+		previous.clear();
+}
+
+void CustomObject::setNext(QSharedPointer<CustomObject> obj)
+{
+	if (obj && obj->getType() == "CustomObject")
+		next = obj;
+	else
+		next.clear();
+}
+Vec3d CustomObject::getXYZ(){
+    return XYZ;
 }
