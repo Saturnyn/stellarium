@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
-echo "###START BUILD"
+echo "###START COMPILE"
 echo "###: remove Stellarium.app"
 cd /Users/yann/git/stellarium/builds/macos
 chmod -R 755 Stellarium.app
 rm -r Stellarium.app/
-echo "###: cmake ../.."
-cmake ../..
+
 echo "###: make -j6"
 make -j6
 echo "###: make install"

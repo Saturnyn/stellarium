@@ -117,6 +117,9 @@ public:
 	//! Draw constellation lines, art, names and boundaries.
 	virtual void draw(StelCore* core);
 
+	//Vaonis: Added handlKey call in order to dump constellation data in a file
+	virtual void handleKeys(QKeyEvent* event);
+
 	//! Updates time-varying state for each Constellation.
 	virtual void update(double deltaTime);
 
@@ -415,6 +418,8 @@ private:
 
 	// Store the thickness of boundaries of the constellations
 	int constellationBoundariesThickness;
+
+	void exportToJson();
 };
 
 #endif // CONSTELLATIONMGR_HPP

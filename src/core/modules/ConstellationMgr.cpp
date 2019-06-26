@@ -41,10 +41,16 @@
 #include <QDebug>
 #include <QFile>
 #include <QSettings>
+#include <QKeyEvent>
+#include <QClipboard>
 #include <QRegExp>
 #include <QString>
 #include <QStringList>
 #include <QDir>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QJsonDocument>
 
 using namespace std;
 
@@ -157,6 +163,9 @@ double ConstellationMgr::getCallOrder(StelModuleActionName actionName) const
 {
 	if (actionName==StelModule::ActionDraw)
 		return StelApp::getInstance().getModuleMgr().getModule("GridLinesMgr")->getCallOrder(actionName)+10;
+    // allow plugins to intercept keys by using a lower number than this!
+    if (actionName == StelModule::ActionHandleKeys)
+    	return 5;
 	return 0;
 }
 
@@ -1496,4 +1505,104 @@ Constellation* ConstellationMgr::isObjectIn(const StelObject *s) const
 			return constellation;
 	}
 	return Q_NULLPTR;
+}
+
+
+
+void ConstellationMgr::handleKeys(QKeyEvent* event)
+{
+    if (event->type() != QEvent::KeyPress)
+	{
+	    // Shift+S
+	    if(event->text() == "S"){
+	        return exportToJson();
+        }
+        /*
+		// When a deplacement key is released stop moving
+		switch (event->key())
+		{
+			case Qt::Key_X:
+                return exportToJson();
+		}
+		*/
+	}
+	event->accept();
+}
+
+void ConstellationMgr::exportToJson(){
+
+    //qWarning() << "Pressed *X* !!!!";
+    //setFlagLines(!linesDisplayed);
+
+    //StelFileMgr::makeSureDirExistsAndIsWritable(QString("/Users/yann/Desktop/TEMP"));
+    //QFile file(QString("/Users/yann/Desktop/TEMP/file.txt"));
+    QFile file(QString("/Users/yann/git/stellinapp_ionic/app/src/assets/data/constellations.json"));
+
+    if(file.open(QIODevice::ReadWrite))
+    {
+        QJsonArray constellationsJson;
+        for(auto* constellation : constellations){
+            QJsonObject constellationJson;
+            constellationJson["id"] = constellation->getShortName();
+            //constellationJson["starsCount"] = int(constellation->numberOfSegments*2);
+
+            QJsonArray shapesJson;
+            QJsonObject starsJson;
+            QString prevId;
+            for (unsigned int i=0;i<constellation->numberOfSegments*2;++i){
+                //QJsonObject startJson;
+                //StelObjectP star = constellation->constellation[i];
+                QString id = constellation->constellation[i]->getID();
+                if(!id.startsWith("HIP ")){
+                    constellationJson["errorInvalidStar"] = id;
+                }else{
+                    id = id.split(" ")[1];
+                    QJsonObject starJson;
+                    Vec3d coords = constellation->constellation[i]->getJ2000EquatorialPos(StelApp::getInstance().getCore());
+                    double de_j2000, ra_j2000;
+                    StelUtils::rectToSphe(&ra_j2000,&de_j2000,coords);
+                    double raDeg, deDeg;
+                    bool raSign, deSign;
+                    StelUtils::radToDecDeg(de_j2000, deSign, deDeg);
+                    StelUtils::radToDecDeg(ra_j2000, raSign, raDeg);
+                    starJson["ra"] = raDeg * (raSign ? 1:-1);
+                    starJson["de"] = deDeg * (deSign ? 1:-1);
+                    //starJson["ra"]  = StelUtils::radToDecDegStr(ra_j2000,5,false,true);
+                    //starJson["de"] = StelUtils::radToDecDegStr(dec_j2000);
+                    starJson["mag"] = constellation->constellation[i]->getVMagnitude(StelApp::getInstance().getCore());
+
+                    starsJson[id] = starJson;
+
+                    if(i%2 == 1){
+                        QJsonArray segmentJson;
+                        segmentJson.append(prevId);
+                        segmentJson.append(id);
+                        shapesJson.append(segmentJson);
+                    }
+                    prevId = id;
+                }
+            }
+            constellationJson["stars"] = starsJson;
+            constellationJson["shapes"] = shapesJson;
+            constellationsJson.append(constellationJson);
+        }
+        QTextStream stream( &file );
+
+        QJsonDocument jsonDoc(constellationsJson);
+        stream << jsonDoc.toJson();
+
+        /*
+        QTextStream stream( &file );
+        stream << "[" << endl;
+        for (auto* constellation : constellations)
+        {
+            stream << "{ \"id\":\"";
+            stream << constellation->getShortName();
+            stream << "\"";
+             stream << endl;
+        }
+        stream << "]" << endl;
+        */
+    }
+    return;
 }
