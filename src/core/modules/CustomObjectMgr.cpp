@@ -18,6 +18,7 @@
 
 #include "StelPainter.hpp"
 #include "StelApp.hpp"
+#include "StelActionMgr.hpp"
 #include "StelCore.hpp"
 #include "StelModuleMgr.hpp"
 #include "StelObjectMgr.hpp"
@@ -33,6 +34,10 @@
 #include <QClipboard>
 #include <QString>
 #include <QStringList>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QJsonDocument>
 
 CustomObjectMgr::CustomObjectMgr()
 	: countMarkers(0)
@@ -42,6 +47,8 @@ CustomObjectMgr::CustomObjectMgr()
 	conf = StelApp::getInstance().getSettings();
 	setFontSize(StelApp::getInstance().getScreenFontSize());
 	connect(&StelApp::getInstance(), SIGNAL(screenFontSizeChanged(int)), this, SLOT(setFontSize(int)));
+
+	consoleString = QString("");
 }
 
 CustomObjectMgr::~CustomObjectMgr()
@@ -54,7 +61,12 @@ double CustomObjectMgr::getCallOrder(StelModuleActionName actionName) const
 	if (actionName==StelModule::ActionDraw)
 		return StelApp::getInstance().getModuleMgr().getModule("LandscapeMgr")->getCallOrder(actionName)+10.;
 	if (actionName==StelModule::ActionHandleMouseClicks)
-		return -11;	
+		return -11;
+
+    //Replaced by a hack in StelApp.handleKeys to have absolute priority
+    //if (actionName == StelModule::ActionHandleKeys)
+    //    return 1; //take priority
+
 	return 0;
 }
 
@@ -255,9 +267,12 @@ void CustomObjectMgr::updateLinks()
             StelUtils::rectToSphe(&ra_j2000,&dec_j2000, customObjects[i]->getJ2000EquatorialPos(core));
             QString ra  = StelUtils::radToDecDegStr(ra_j2000,5,false,true);
             QString de = StelUtils::radToDecDegStr(dec_j2000);
-            list->append(QString("%1,%2;").arg(ra).arg(de));
+            QString coords = QString("%1,%2").arg(ra).arg(de);
+            coords = coords.remove("+");
+            coords = coords.remove("°");
+            list->append(coords);
         }
-        clipboard->setText(list->join(""), QClipboard::Clipboard);
+        clipboard->setText(list->join(";"), QClipboard::Clipboard);
     }
 }
 
@@ -275,6 +290,11 @@ void CustomObjectMgr::draw(StelCore* core)
 
 	if (GETSTELMODULE(StelObjectMgr)->getFlagSelectedObjectPointer())
 		drawPointer(core, painter);
+
+
+    //Display our console
+    painter.setColor(0, 1.f, 1.f, 1.f); //cyan
+    painter.drawText(100, 100, consoleString);
 }
 
 void CustomObjectMgr::drawPointer(StelCore* core, StelPainter& painter)
@@ -432,4 +452,60 @@ float CustomObjectMgr::getMarkersSize() const
 void CustomObjectMgr::setActiveRadiusLimit(const int radius)
 {
 	radiusLimit = radius;
+}
+
+
+void CustomObjectMgr::handleKeys(QKeyEvent* event)
+{
+    //Vaonis:
+    //This was an attempt at making a console to save/load shapes
+    //Disabled for now, if you want to reactivate it, you will run into problems with the StelAction shortcuts => reactivate changes in StelActionMgr
+    /*
+    qDebug() << "### CustomObjectMgr handleKey: " << event;
+    if (event->type() != QEvent::KeyPress) return;
+
+    bool accept = false;
+    QString input = event->text();
+
+    if(input == ":"){
+        if(consoleActive){
+            consoleActive = false;
+            consoleString = QString("");
+        }else{
+            consoleActive = true;
+            consoleString = QString(":");
+            StelActionMgr* actionMgr = StelApp::getInstance().getStelActionManager();
+        }
+        accept = true;
+    }else if(consoleActive){
+
+        if(event->key() == Qt::Key_Backspace){
+            consoleString.truncate(consoleString.size()-1);
+            if(consoleString.size() == 0){
+               consoleActive = false;
+            }
+        }else if(event->key() == Qt::Key_Return){
+            QString command = consoleString.trimmed();
+            command.remove(0, 1);
+            QStringList parts = command.split(' ', QString::SkipEmptyParts);
+
+            qDebug() << "parts: " << parts;
+
+            if(parts[0] == "s" || parts[0] == "save"){
+
+            }else{
+                consoleString += " => invalid command";
+            }
+            consoleActive = false;
+        }else{
+            consoleString.append(input);
+        }
+        accept = true;
+    }
+
+	qDebug() << "accept:" << accept << " consoleActive:" << consoleActive << " consoleString:" << consoleString;
+	if(accept){
+	    event->accept();
+	}
+    */
 }

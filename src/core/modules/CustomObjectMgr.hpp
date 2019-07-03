@@ -49,6 +49,9 @@ public:
 	virtual void drawPointer(StelCore* core, StelPainter& painter);
 	virtual double getCallOrder(StelModuleActionName actionName) const;
 
+	//Vaonis: Added handlKey call in order to dump constellation data in a file
+    virtual void handleKeys(QKeyEvent* event);
+
 	///////////////////////////////////////////////////////////////////////////
 	// Methods defined in StelObjectModule class
 	//! Used to get a list of objects which are near to some position.
@@ -193,6 +196,10 @@ private:
 	CustomObjectP getSelected(void) const {return selected;}
 	//! The currently selected planet.
 	CustomObjectP selected;
+
+	QString consoleString;
+	QString prevConsoleString;
+	bool consoleActive;
 };
 
 #endif /* CUSTOMOBJECTMGR_HPP */

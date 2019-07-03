@@ -299,6 +299,7 @@ public:
 protected:
 	void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE
 	{
+	    //qDebug() << "### StelGraphicsScene: keyPressEvent" << event;
 		// Try to trigger a global shortcut.
 		StelActionMgr* actionMgr = StelApp::getInstance().getStelActionManager();
 		if (actionMgr->pushKey(event->key() + event->modifiers(), true)) {
@@ -426,6 +427,7 @@ protected:
 
 	void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE
 	{
+	    //qDebug() << "### StelApp: keyPressEvent" << event;
 		StelApp::getInstance().handleKeys(event);
 		if(event->isAccepted())
 			mainView->thereWasAnEvent();
@@ -433,6 +435,7 @@ protected:
 
 	void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE
 	{
+	    //qDebug() << "### StelApp: keyReleaseEvent" << event;
 		StelApp::getInstance().handleKeys(event);
 		if(event->isAccepted())
 			mainView->thereWasAnEvent();

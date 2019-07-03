@@ -1511,10 +1511,12 @@ Constellation* ConstellationMgr::isObjectIn(const StelObject *s) const
 
 void ConstellationMgr::handleKeys(QKeyEvent* event)
 {
+    //qDebug() << "############### ConstellationMgr handleKey: " << event->text();
     if (event->type() != QEvent::KeyPress)
 	{
 	    // Shift+S
 	    if(event->text() == "S"){
+	        event->accept();
 	        return exportToJson();
         }
         /*
@@ -1526,17 +1528,16 @@ void ConstellationMgr::handleKeys(QKeyEvent* event)
 		}
 		*/
 	}
-	event->accept();
+
 }
 
 void ConstellationMgr::exportToJson(){
 
-    //qWarning() << "Pressed *X* !!!!";
     //setFlagLines(!linesDisplayed);
 
     //StelFileMgr::makeSureDirExistsAndIsWritable(QString("/Users/yann/Desktop/TEMP"));
     //QFile file(QString("/Users/yann/Desktop/TEMP/file.txt"));
-    QFile file(QString("/Users/yann/git/stellinapp_ionic/app/src/assets/data/constellations.json"));
+    QFile file(QString("/Users/yann/git/stellinapp_ionic/db-tools/src/constellations3/ouptut.json"));
 
     if(file.open(QIODevice::ReadWrite))
     {

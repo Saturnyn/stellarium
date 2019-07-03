@@ -69,7 +69,11 @@ StelAction::StelAction(const QString& actionId,
 	QWidget* mainView = &StelMainView::getInstance();
 	qAction = new QAction(this);
 	onChanged();
+
+	//Vaonis: comment this out to allow our CustomObjectMgr console to work without the shortcuts interference
+	//TODO: find a cleaner way to do this but I a
 	mainView->addAction(qAction);
+
 	connect(qAction, SIGNAL(triggered()), this, SLOT(trigger()));
 	connect(this, SIGNAL(changed()), this, SLOT(onChanged()));
 #endif
@@ -118,6 +122,7 @@ void StelAction::toggle()
 
 void StelAction::trigger()
 {
+    qDebug() << "### StelAction::trigger";
 	if (isCheckable())
 		toggle();
 	else
@@ -215,6 +220,9 @@ StelAction* StelActionMgr::findAction(const QString& id)
 
 bool StelActionMgr::pushKey(int key, bool global)
 {
+
+    qDebug() << "### StelActionMgr pushKey, actionsEnabled=" << actionsEnabled;
+    return false;
 	if (!actionsEnabled)
 		return false;
 	keySequence << key;

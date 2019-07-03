@@ -1,6 +1,23 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
 MESSAGE(STATUS "Found CMake ${CMAKE_VERSION}")
 
+
+# Yann https://stackoverflow.com/questions/38746635/how-to-solve-qt5-packages-not-found-cmake-errors-in-mac
+SET(Qt5Core_DIR /usr/local/opt/qt/lib/cmake/Qt5Core)
+SET(Qt5Concurrent_DIR /usr/local/opt/qt/lib/cmake/Qt5Concurrent)
+SET(Qt5Gui_DIR /usr/local/opt/qt/lib/cmake/Qt5Gui)
+SET(Qt5Network_DIR /usr/local/opt/qt/lib/cmake/Qt5Network)
+SET(Qt5Widgets_DIR /usr/local/opt/qt/lib/cmake/Qt5Widgets)
+SET(Qt5PrintSupport_DIR /usr/local/opt/qt/lib/cmake/Qt5PrintSupport)
+SET(Qt5SerialPort_DIR /usr/local/opt/qt/lib/cmake/Qt5SerialPort)
+SET(Qt5Script_DIR /usr/local/opt/qt/lib/cmake/Qt5Script)
+SET(Qt5Multimedia_DIR /usr/local/opt/qt/lib/cmake/Qt5Multimedia)
+SET(Qt5MultimediaWidgets_DIR /usr/local/opt/qt/lib/cmake/Qt5MultimediaWidgets)
+SET(Qt5Positioning_DIR /usr/local/opt/qt/lib/cmake/Qt5Positioning)
+SET(Qt5OpenGL_DIR /usr/local/opt/qt/lib/cmake/Qt5OpenGL)
+SET(Qt5LinguistTools_DIR /usr/local/opt/qt/lib/cmake/Qt5LinguistTools)
+
+
 IF(POLICY CMP0054)
 # Potential dangerous comparison of variables. Details: https://cmake.org/cmake/help/v3.1/policy/CMP0054.html
      CMAKE_POLICY(SET CMP0054 NEW)
