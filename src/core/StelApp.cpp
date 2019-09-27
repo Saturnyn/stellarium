@@ -861,7 +861,7 @@ void StelApp::handleKeys(QKeyEvent* event)
 	event->setAccepted(false);
 
     //qDebug() << "### StelApp: handleKeys " << event;
-
+    /*
     if (event->type() == QEvent::KeyPress){
         //Vaonis: First see if our console wants the event for itself
         StelModule* customObjectMgr = getModule("CustomObjectMgr");
@@ -873,6 +873,7 @@ void StelApp::handleKeys(QKeyEvent* event)
        // qDebug() << "### StelApp: CustomObjectMgr rejected the key event";
     }
     return;
+    */
 
 	// First try to trigger a shortcut.
 	if (event->type() == QEvent::KeyPress)

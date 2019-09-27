@@ -1511,7 +1511,7 @@ Constellation* ConstellationMgr::isObjectIn(const StelObject *s) const
 
 void ConstellationMgr::handleKeys(QKeyEvent* event)
 {
-    //qDebug() << "############### ConstellationMgr handleKey: " << event->text();
+    qDebug() << "############### ConstellationMgr handleKey: " << event->text();
     if (event->type() != QEvent::KeyPress)
 	{
 	    // Shift+S
@@ -1532,6 +1532,8 @@ void ConstellationMgr::handleKeys(QKeyEvent* event)
 }
 
 void ConstellationMgr::exportToJson(){
+
+    qDebug() << "############### ConstellationMgr exportToJson";
 
     //setFlagLines(!linesDisplayed);
 
@@ -1570,7 +1572,27 @@ void ConstellationMgr::exportToJson(){
                     starJson["de"] = deDeg * (deSign ? 1:-1);
                     //starJson["ra"]  = StelUtils::radToDecDegStr(ra_j2000,5,false,true);
                     //starJson["de"] = StelUtils::radToDecDegStr(dec_j2000);
-                    starJson["mag"] = constellation->constellation[i]->getVMagnitude(StelApp::getInstance().getCore());
+
+                    double visualMagnitude = constellation->constellation[i]->getVMagnitude(StelApp::getInstance().getCore());
+                    //double absoluteMagnitude = visualMagnitude+5.*(1.+std::log10(0.00001*s->getPlx()
+
+                    QVariantMap map = constellation->constellation[i]->getInfoMap(StelApp::getInstance().getCore());
+                    double absoluteMagnitude = map.value("absolute-mag").toDouble();
+
+                    starJson["visualMagnitude"] = visualMagnitude;
+                    starJson["absoluteMagnitude"] = absoluteMagnitude;
+
+                    {
+                        QString objInfo = "";
+                        StelObject::InfoStringGroup tuiInfo(StelObject::Distance | StelObject::PlainText );
+                        objInfo = constellation->constellation[i]->getInfoString(StelApp::getInstance().getCore(), tuiInfo);
+                        QString cutString1 = "Distance: ";
+                        QString cutString2 = " al";
+                        int startIndex = objInfo.indexOf(cutString1) + cutString1.length();
+                        int size = objInfo.length() -startIndex - cutString2.length();
+                        objInfo = objInfo.mid(startIndex, size);
+                        starJson["distance"] = objInfo.toFloat();
+                    }
 
                     starsJson[id] = starJson;
 
